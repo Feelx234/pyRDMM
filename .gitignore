@@ -9,6 +9,8 @@ __pycache__
 pysubgroup/__pycache__
 **/__pycache__/
 .vscode
+*.egg-info
+
 # User-specific files
 *.suo
 *.user

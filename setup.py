@@ -1,12 +1,9 @@
 from setuptools import setup
 
 setup(
-    name='model_mining',
+    name='RDMM',
     version='0.1.0',
-    packages=['', 'test'],
-    package_dir={'': 'model_mining', 'test': "model_mining.tests"},
-    url='',
-    license='',
+    packages=['RDMM'],
     author='Felix Stamm',
     author_email='felix.stamm@cssh.rwth-aachen.de',
     description='This package enables redescription model mining within the pysubgroup package',
