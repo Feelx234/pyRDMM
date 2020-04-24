@@ -1,4 +1,4 @@
-from model_mining.histogram_quality_functions import *
+from RDMM.histogram_quality_functions import HistogramPearsonCorrelation, HistogramIntersection, HighDHistogramQuality
 import unittest
 import numpy as np
 import pandas as pd
