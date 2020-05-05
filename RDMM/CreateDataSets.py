@@ -6,6 +6,8 @@ import pandas as pd
 from itertools import chain
 from collections import namedtuple
 
+from .generate_correlation import *
+
 def getGaussParamsForLine(slope,intersept,sigma1,sigma2,x_center):
     phi=np.arctan(slope)
     sin_phi=np.sin(phi)
@@ -426,7 +428,11 @@ def create_Zipfs_distribution(n_words, n_swaps, initial_fuel = 10):
         new_positions.append((curr_id, word_id))
     print(new_positions)
 
-            
 
-        
+######         --- begin covariance ---    
+
+
+def generate_two_cov_dataframes(background_sizes, n_classes, num_noise_attributes, n_states): # has test
+    params_func = functools.partial(generate_cov_parameters, n_states)
+    return generate_two_dataframes(background_sizes, n_classes, num_noise_attributes, create_cov_dataframe, params_func)
 
