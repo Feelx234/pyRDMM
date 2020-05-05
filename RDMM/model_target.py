@@ -3,7 +3,7 @@ from numba import njit
 import pysubgroup as ps
 from scipy.stats import norm
 from collections import namedtuple
-beta_tuple = namedtuple('beta_tuple',['beta','size'])
+beta_tuple = namedtuple('beta_tuple',['beta','size_sg'])
 from numba import njit
 @njit(fastmath=True)
 def norm_pdf(x,y,beta,out):
@@ -82,11 +82,7 @@ class PolyRegression_ModelClass:
         return beta_tuple(np.array([slope, intersept]), v[0])
 
     def fit(self, subgroup, data=None):
-        if hasattr(subgroup, "__array_interface__"):
-            cover_arr = subgroup
-        else:
-            cover_arr = subgroup.covers(data)
-        size = np.count_nonzero(cover_arr)
+        cover_arr, size = ps.get_cover_array_and_size(subgroup, len(self.y), data)
         if size <= self.degree:
             return beta_tuple(np.full(self.degree + 1, np.nan), size)
         return beta_tuple(np.polyfit(self.x[cover_arr], self.y[cover_arr], deg=self.degree), size)

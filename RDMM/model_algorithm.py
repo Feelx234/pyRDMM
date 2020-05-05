@@ -9,7 +9,7 @@ import functools
 from collections import namedtuple
 
 def getExceptionalSGs(task, Constraints):
-    tpls=task.algorithm.execute(task)
+    tpls=task.algorithm.execute(task).to_descriptions()
     #beam_search(df,Qf,AtomicGrowthRefinement(sels, ExtensionTypes.AND),3,Constraints,30)
     #Exs=[ex for ex,_ in tpls]
     #Exs=minMaxScale(Exs)
@@ -36,7 +36,7 @@ compare_tuple=namedtuple('compare_tuple',['exceptionality', 'subgroup', 'cover_a
 def get_params_for_tpls(get_params_func, data, requires_cover_arr, tpls):
     def get_params_for_tpl(get_params_func, data, requires_cover_arr, tpl):
         quality, subgroup = tpl
-        cover_arr=subgroup.subgroup_description.covers(data)
+        cover_arr=subgroup.covers(data)
         rel_size=np.count_nonzero(cover_arr)/len(cover_arr)
         params = get_params_func(cover_arr, data)
         
@@ -107,7 +107,7 @@ def apply_quality_for_candidates(candidates, task):
         
 
 def sg_to_description(result):
-    return [(x, y.subgroup_description) for x,y in result]
+    return [(x, y) for x,y in result]
 
 
 def find_model_through_heuristic(task_L, task_R,  resultLen,sim_QF, combineFun, all_model_parameters, models):
@@ -152,7 +152,7 @@ def to_dataframe(result_in):
         #beta_R,XTX_R,s_2_R,nR,_,_ = params_R
         params_L=params_L
         params_R=params_R
-        final_result.append((quality,similarity,ex_L,ex_R,str(sGL.subgroup_description),str(sGR.subgroup_description),params_L.size,params_R.size)) 
+        final_result.append((quality,similarity,ex_L,ex_R,str(sGL),str(sGR),params_L.size,params_R.size)) 
     df_final=pd.DataFrame.from_records(final_result)
     df_final.columns = ["qual",'sim','eL','eR','sgd1','sgd2','sizeL','sizeR']
     for col in ['eL','eR','sgd1','sgd2','sizeL','sizeR']:

@@ -3,7 +3,8 @@ import pickle
 from tqdm import tqdm
 from collections import namedtuple
 from .CreateDataSets import generate_two_regression_dataframes, hide, generate_two_transition_dataframes
-from .QualityFunctions import *
+from .QualityFunctions import EMM_LikelihoodGain, EMM_quality_Cook_poly, SizeWrapper, DoubleCooksSimilarity, LikelihoodSimilarity, TotalVariationSimilarity, ParameterDiff_Similarity, EMM_TotalVariation
+from .generic_quality_measures import Ex_Distance, ParameterDistance, Sim_Direct_Distance
 from .model_algorithm import beam_search_through_candidates, getExceptionalSGs, to_dataframe, find_model_through_heuristic
 from . model_target import PolyRegression_ModelClass, Transition_ModelClass
 from pathlib import Path
@@ -70,19 +71,19 @@ def getTotalVariationExceptionality(n_states, gamma):
     return SizeWrapper(EMM_TotalVariation(n_states), gamma)
 
 def get_pmatrix(tpl):
-    return tpl.p_matrix
+    return tpl.p_matrix.flatten()
 def getParameterDiff_trans(n_states, gamma):
-    return SizeWrapper(EMM_Exceptionality_ParameterDiff(Transition_ModelClass(n_states, 10), get_pmatrix, exponent=1), gamma)
+    return SizeWrapper(Ex_Distance(Transition_ModelClass(n_states, 10), ParameterDistance(get_pmatrix)), gamma)
 def getParameterDiff_sim_trans(n_states):
-    return ParameterDiff_Similarity(Transition_ModelClass(n_states, 10), Transition_ModelClass(n_states, 10), get_pmatrix)
+    return Sim_Direct_Distance(Transition_ModelClass(n_states, 10), Transition_ModelClass(n_states, 10), ParameterDistance(get_pmatrix))
 
 
 def get_beta(tpl):
-    return tpl.beta
+    return tpl.beta.flatten()
 def getParameterDiff_reg(gamma):
-    return SizeWrapper(EMM_Exceptionality_ParameterDiff(PolyRegression_ModelClass(), get_beta, exponent=1), gamma)
+    return SizeWrapper(Ex_Distance(PolyRegression_ModelClass(), ParameterDistance(get_beta)), gamma)
 def getParameterDiff_sim_reg():
-    return ParameterDiff_Similarity(PolyRegression_ModelClass(), PolyRegression_ModelClass(), get_beta)
+    return Sim_Direct_Distance(PolyRegression_ModelClass(), PolyRegression_ModelClass(), ParameterDistance(get_beta))
 
 
 task_tpl=namedtuple('task_tpl',['prefix', 'df_index', 'ex_qf', 'sim_qf', 'final_qf', 'alpha', 'beta', 'gamma', 'parameters', 'task_id', 'model_name', 'ignore_columns'])
@@ -205,8 +206,8 @@ class EvaluationFramework:
         return tasks
 
     def execute_regression_tests(self, parameters, n_dataframes=10, n_classes=10, processes=1,continue_at=0, ):  
-        ex_qfs = [(getLikelihoodExceptionality,'Like'), (get_LOG_LikelihoodExceptionality,'Log'), (getCooksExeptionality,'Cooks'),(getParameterDiff_reg,'par')]
-        sim_qfs= [(getLikelihoodSim,'Like_sim'), (get_LOG_LikelihoodSim,'Log_sim'), (getDoubleCooks,'Cooks_sim'),(getParameterDiff_sim_reg,'par_sim')]
+        ex_qfs = [(getLikelihoodExceptionality,'Like'),  (getCooksExeptionality,'Cooks'),(getParameterDiff_reg,'par')] #(get_LOG_LikelihoodExceptionality,'Log'),
+        sim_qfs= [(getLikelihoodSim,'Like_sim'),  (getDoubleCooks,'Cooks_sim'),(getParameterDiff_sim_reg,'par_sim')] #(get_LOG_LikelihoodSim,'Log_sim'),
 
         tasks=self.create_tasks(ex_qfs, sim_qfs, n_dataframes, model_name='regression', ignore_columns=['x','y','class'], parameters=parameters)
         #tasks=[x for x in tasks if not (x[3][1]=='Cooks_sim')]
@@ -262,18 +263,19 @@ class EvaluationFramework:
 
 
     def run_single_task_oracle(self, df1, df2, Qf_L, Qf_R, similarity_function, total_fun, parameters,exclusions):
+        raise NotImplementedError()
+        #sels_L=ps.create_nominal_selectors(df1,exclusions)
+        #sels_R=ps.create_nominal_selectors(df2,exclusions)
+        #task_L = ps.SubgroupDiscoveryTask(df1, None, sels_L, Qf_L, result_set_size = parameters.result_size, depth=parameters.depth)
+        #task_L.algorithm = ps.SimpleSearch(show_progress=False)#ps.DFS(ps.BitSetRepresentation)#parameters.result_size)
+        #task_R = ps.SubgroupDiscoveryTask(df2, None, sels_R, Qf_R, result_set_size = parameters.result_size, depth=parameters.depth)
+        #task_R.algorithm = ps.SimpleSearch(show_progress=False)#ps.DFS(ps.BitSetRepresentation)#(parameters.result_size)
 
-        sels_L=ps.create_nominal_selectors(df1,exclusions)
-        sels_R=ps.create_nominal_selectors(df2,exclusions)
-        task_L = ps.SubgroupDiscoveryTask(df1, None, sels_L, Qf_L, result_set_size = parameters.result_size, depth=parameters.depth)
-        task_L.algorithm = ps.SimpleSearch(show_progress=False)#ps.DFS(ps.BitSetRepresentation)#parameters.result_size)
-        task_R = ps.SubgroupDiscoveryTask(df2, None, sels_R, Qf_R, result_set_size = parameters.result_size, depth=parameters.depth)
-        task_R.algorithm = ps.SimpleSearch(show_progress=False)#ps.DFS(ps.BitSetRepresentation)#(parameters.result_size)
-
-        models = (PolyRegression_ModelClass(), PolyRegression_ModelClass())
-        num_models=50
-        all_model_parameters=[beta_tuple(np.random.rand(2)) for _ in range(num_models)]
-        return find_model_through_heuristic(task_L, task_R, parameters.total_result_size, similarity_function, total_fun, all_model_parameters, models)
+        #models = (PolyRegression_ModelClass(), PolyRegression_ModelClass())
+        #num_models=50
+        
+        #all_model_parameters=[beta_tuple(np.random.rand(2)) for _ in range(num_models)]
+        #return find_model_through_heuristic(task_L, task_R, parameters.total_result_size, similarity_function, total_fun, all_model_parameters, models)
 
     def get_ranks(self, df, n_classes, hide_depth=2):
         equal_inds = df["sgd1"].astype(str) == df["sgd2"].astype(str)
@@ -281,7 +283,7 @@ class EvaluationFramework:
         s_repr = df_equal['sgd1'].astype(str)
         inds_expected = np.zeros(len(df_equal), dtype=bool)
         for class_index in range(1, n_classes+1):
-            selectors = [ps.NominalSelector(f'class_{class_index}_{depth_index}', True) for depth_index in range(hide_depth)]
+            selectors = [ps.EqualitySelector(f'class_{class_index}_{depth_index}', True) for depth_index in range(hide_depth)]
             conj = ps.Conjunction(selectors)
             inds_expected |= (s_repr == str(conj))
         ranks = df_equal.index[inds_expected]+1

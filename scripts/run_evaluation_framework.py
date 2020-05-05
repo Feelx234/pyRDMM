@@ -2,28 +2,28 @@ import warnings
 #warnings.filterwarnings("error")
 import sys
 sys.path.append('pysubgroup')
-from model_mining.evaluation_framework import EvaluationFramework, mine_pair_parameters
+from RDMM.evaluation_framework import EvaluationFramework, mine_pair_parameters
 from pathlib import Path
 import numpy as np
-folder= Path.home()/Path('experiments')/Path('02_07')
+folder= Path.home()/Path('experiments')/Path('05_05')
 
 if __name__ == '__main__':
     print(folder)
     frame = EvaluationFramework(folder)
     #frame.override=True
     createDataset = False
-    regression = False
-    transition = True
+    regression = True
+    transition = False
     mine_pair_params=mine_pair_parameters(50,100,2,'mine_pair',[])
     exhaustive_params=mine_pair_parameters(2000,1000000,2,'exhaustive',[])
     if regression:
-
+        params=mine_pair_params
         n_reg_frames=10
         #try:
-        if False:
+        if createDataset:
             out = frame.create_linear_regression_datasets(n_classes=10, n_noise=10, n_dataframes=n_reg_frames, hide_depth=2)
         if True:
-            frame.execute_regression_tests(mine_pair_params, n_dataframes=n_reg_frames, processes=4)
+            frame.execute_regression_tests(params, n_dataframes=n_reg_frames, processes=4)
     if transition:
         n_states=5
         n_trans_frames=10

@@ -79,7 +79,6 @@ class EMM_quality_Cook_poly(ps.AbstractInterestingnessMeasure):
         self.required_stat_attrs = ('beta',)
 
     def calculate_constant_statistics(self, task):
-        data=task.data
         self.model.calculate_constant_statistics(task)
         self.beta_all = self.model.fit(np.ones(len(task.data), dtype=bool), task.data).beta
         self.XTX, self.s_2 = getXTXforFit(self.model.x, self.model.y, self.beta_all)
@@ -96,7 +95,7 @@ class EMM_quality_Cook_poly(ps.AbstractInterestingnessMeasure):
 
     def evaluate(self, subgroup, statistics = None):
         statistics = self.ensure_statistics(subgroup, statistics)
-        if statistics.size <=0:
+        if statistics.size_sg <=0:
             return np.nan
         return CooksDistance(statistics.beta, self.beta_all, self.XTX, self.s_2)
 
@@ -107,42 +106,6 @@ class EMM_quality_Cook_poly(ps.AbstractInterestingnessMeasure):
         return True
 
 
-
-class EMM_Exceptionality_ParameterDiff(ps.AbstractInterestingnessMeasure):
-    tpl=namedtuple('tpl_ParameterDiff',['model_params'])
-    def __init__(self, model, get_params_func, exponent):
-        self.model = model
-        self.has_constant_statistics = False
-        self.required_stat_attrs = EMM_Exceptionality_ParameterDiff.tpl._fields
-        self.get_params_func = get_params_func
-        self.exponent = exponent
-        self.dataset_params = None
-
-    def calculate_constant_statistics(self, task):
-        self.model.calculate_constant_statistics(task)
-        self.dataset_params=self.get_params_func(self.model.fit(np.ones(len(task.data),dtype=bool), task.data))
-        self.data_size = len(task.data)
-        self.has_constant_statistics = True
-
-    def calculate_statistics(self, subgroup, data=None):
-        if hasattr(subgroup, "__array_interface__"):
-            cover_arr = subgroup
-        else:
-            cover_arr = subgroup.covers(data)
-        params = self.model.fit(cover_arr, data)
-        real_params = self.get_params_func(params)
-        
-        return EMM_Exceptionality_ParameterDiff.tpl(real_params)
-
-    def evaluate(self, subgroup, statistics = None):
-        statistics = self.ensure_statistics(subgroup, statistics)
-        return np.sum(np.power(np.abs(statistics.model_params - self.dataset_params), self.exponent))
-
-    def supports_weights(self):
-        return False
-
-    def is_applicable(self, _):
-        return True
 
 
 
@@ -271,7 +234,7 @@ class SizeWrapper(ps.AbstractInterestingnessMeasure):
         return SizeWrapper.tpl(sg_size, params)
 
     def evaluate(self, subgroup, statistics = None):
-        return (statistics.size / self.data_size) ** self.alpha * self.qf.evaluate(subgroup, statistics.wrapped_tuple)
+        return (statistics.size_sg / self.data_size) ** self.alpha * self.qf.evaluate(subgroup, statistics.wrapped_tuple)
 
     def optimistic_estimate(self, subgroup, statistics = None):
         return float('inf')
@@ -440,7 +403,7 @@ class ParameterDiff_Similarity(ps.AbstractInterestingnessMeasure):
             fit_result=self.model_R.fit(subgroup, data)
         else:
             raise ValueError
-        return ParameterDiff_Similarity.tpl(self.get_params_func(fit_result ),fit_result.size)
+        return ParameterDiff_Similarity.tpl(self.get_params_func(fit_result ),fit_result.size_sg)
 
     def evaluate(self, subgroup1, subgroup2, statistics1, statistics2):
         return  1/np.sum(np.abs(statistics1.model_params - statistics2.model_params))
@@ -489,7 +452,7 @@ class DoubleCooksSimilarity(ps.AbstractInterestingnessMeasure):
 
         fit_result = model.fit(subgroup, data)
         basis=model.gp_get_stats_multiple(cover_arr)
-        return DoubleCooksSimilarity.tpl(fit_result.beta, fit_result.size, basis)
+        return DoubleCooksSimilarity.tpl(fit_result.beta, fit_result.size_sg, basis)
 
     def evaluate(self, subgroup1, subgroup2, statistics1, statistics2):
         L = statistics1
