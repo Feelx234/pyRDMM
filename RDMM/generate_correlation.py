@@ -66,6 +66,6 @@ def create_cov_dataframe(class_sizes, cov_matrices):
     print(samples_stacked.shape)
     d["class"]=pd.Categorical(class_array)
     for i in range(samples_stacked.shape[1]):
-        name = 'cov_{}'.format(str(i))
+        name = 'attr_{}'.format(str(i))
         d[name] = samples_stacked[:,i].flatten()
     return pd.DataFrame.from_dict(d)
