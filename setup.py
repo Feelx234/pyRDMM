@@ -8,7 +8,7 @@ setup(
     author_email='felix.stamm@cssh.rwth-aachen.de',
     description='This package enables redescription model mining within the pysubgroup package',
     install_requires=[
-              'pandas','scipy','numpy','matplotlib', 'numba', 'seaborn'
+              'pandas','scipy','numpy','matplotlib', 'numba', 'seaborn', 'tqdm'
           ],
     python_requires='>=3.5'
 )

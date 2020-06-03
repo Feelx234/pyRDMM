@@ -43,3 +43,7 @@ class Correlation_L_Distance:
     @property
     def requires_cover_arr(self):
         return False
+
+    @property
+    def is_symmetric(self):
+        return True

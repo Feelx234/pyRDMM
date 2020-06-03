@@ -10,6 +10,7 @@ pysubgroup/__pycache__
 **/__pycache__/
 .vscode
 *.egg-info
+.ipynb_checkpoints
 
 # User-specific files
 *.suo
@@ -297,3 +298,4 @@ __pycache__/
 /pysubgroup/Untitled3.ipynb
 /pysubgroup/Untitled4.ipynb
 .vscode/settings.json
+scripts/.ipynb_checkpoints/housing copy-checkpoint.ipynb

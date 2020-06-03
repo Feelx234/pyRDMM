@@ -211,7 +211,7 @@ class EMM_LikelihoodGain(ps.AbstractInterestingnessMeasure):
 
 
 class SizeWrapper(ps.AbstractInterestingnessMeasure):
-    tpl=namedtuple('SizeWrapper',['size','wrapped_tuple'])
+    tpl=namedtuple('SizeWrapper',['size_sg','wrapped_tuple'])
     def __init__(self, qf, alpha):
         self.qf = qf
         self.alpha = alpha
