@@ -1,11 +1,12 @@
 import warnings
 #warnings.filterwarnings("error")
 import sys
-sys.path.append('pysubgroup')
 from RDMM.evaluation_framework import EvaluationFramework, mine_pair_parameters
 from pathlib import Path
 import numpy as np
-folder= Path.home()/Path('experiments')/Path('05_05')
+
+#folder= Path.home()/Path('experiments')/Path('06_03')
+folder= "L:"/Path('experiments')/Path('06_03')
 
 if __name__ == '__main__':
     print(folder)

@@ -295,7 +295,7 @@ def sum_where(arr, where):
 
 from scipy.stats import norm
 class LikelihoodSimilarity(ps.AbstractInterestingnessMeasure):
-    tpl=namedtuple('similarity_stats',['params','likelihood','size'])
+    tpl=namedtuple('similarity_stats',['params','likelihood','size_sg'])
     def __init__(self, model_L, model_R, use_log=False):
         self.model_L = model_L
         self.model_R = model_R
@@ -338,7 +338,7 @@ class LikelihoodSimilarity(ps.AbstractInterestingnessMeasure):
         return min(sum1/size1,sum2/size2)
 
     def evaluate(self, subgroup1, subgroup2, statistics1, statistics2):
-        return self._evaluate(statistics1.likelihood,statistics2.likelihood,subgroup1,subgroup2,statistics1.size,statistics2.size)
+        return self._evaluate(statistics1.likelihood,statistics2.likelihood,subgroup1,subgroup2,statistics1.size_sg,statistics2.size_sg)
             
 
     def supports_weights(self):
@@ -353,7 +353,7 @@ class LikelihoodSimilarity(ps.AbstractInterestingnessMeasure):
 
 
 class Dumb_Sim_Wrapper():
-    tpl=namedtuple('size_tpl',['size'])
+    tpl=namedtuple('size_tpl',['size_sg'])
     def __init__(self, other_quality):
         self.qf=other_quality
         self.data_1=None
@@ -384,7 +384,7 @@ class Dumb_Sim_Wrapper():
 
 
 class ParameterDiff_Similarity(ps.AbstractInterestingnessMeasure):
-    tpl=namedtuple('tpl_ParameterDiff',['model_params','size'])
+    tpl=namedtuple('tpl_ParameterDiff',['model_params','size_sg'])
 
     def __init__(self, model_L, model_R, get_params_func):
         self.model_L = model_L
@@ -421,7 +421,7 @@ class ParameterDiff_Similarity(ps.AbstractInterestingnessMeasure):
 
 
 class DoubleCooksSimilarity(ps.AbstractInterestingnessMeasure):
-    tpl=namedtuple("likelihood_stats",['beta','size','basis'])
+    tpl=namedtuple("likelihood_stats",['beta','size_sg','basis'])
 
     def __init__(self, model_L, model_R):
         self.model_L = model_L
@@ -457,7 +457,7 @@ class DoubleCooksSimilarity(ps.AbstractInterestingnessMeasure):
     def evaluate(self, subgroup1, subgroup2, statistics1, statistics2):
         L = statistics1
         R = statistics2
-        if (L.size > self.model_L.degree) and (R.size > self.model_R.degree):
+        if (L.size_sg > self.model_L.degree) and (R.size_sg > self.model_R.degree):
             beta_tpl = PolyRegression_ModelClass.gp_get_params( PolyRegression_ModelClass.gp_merge(L.basis, R.basis,inplace=False))
             Cook1 = CooksDistance(L.beta, beta_tpl.beta, self.qf_L.XTX, self.qf_L.s_2)
             Cook2 = CooksDistance(R.beta, beta_tpl.beta, self.qf_R.XTX, self.qf_R.s_2)

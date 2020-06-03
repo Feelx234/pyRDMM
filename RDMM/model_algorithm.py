@@ -152,7 +152,7 @@ def to_dataframe(result_in):
         #beta_R,XTX_R,s_2_R,nR,_,_ = params_R
         params_L=params_L
         params_R=params_R
-        final_result.append((quality,similarity,ex_L,ex_R,str(sGL),str(sGR),params_L.size,params_R.size)) 
+        final_result.append((quality,similarity,ex_L,ex_R,str(sGL),str(sGR),params_L.size_sg,params_R.size_sg)) 
     df_final=pd.DataFrame.from_records(final_result)
     df_final.columns = ["qual",'sim','eL','eR','sgd1','sgd2','sizeL','sizeR']
     for col in ['eL','eR','sgd1','sgd2','sizeL','sizeR']:
