@@ -2,11 +2,12 @@ import numpy as np
 import pickle
 from tqdm import tqdm
 from collections import namedtuple
-from .CreateDataSets import generate_two_regression_dataframes, hide, generate_two_transition_dataframes
+from .CreateDataSets import generate_two_regression_dataframes, hide, generate_two_transition_dataframes, generate_two_cov_dataframes
 from .QualityFunctions import EMM_LikelihoodGain, EMM_quality_Cook_poly, SizeWrapper, DoubleCooksSimilarity, LikelihoodSimilarity, TotalVariationSimilarity, ParameterDiff_Similarity, EMM_TotalVariation
 from .generic_quality_measures import Ex_Distance, ParameterDistance, Sim_Direct_Distance
 from .model_algorithm import beam_search_through_candidates, getExceptionalSGs, to_dataframe, find_model_through_heuristic
 from . model_target import PolyRegression_ModelClass, Transition_ModelClass
+import RDMM.correlation_quality_functions as correlations
 from pathlib import Path
 from itertools import product
 import pysubgroup as ps
@@ -23,6 +24,8 @@ regression_parameters = namedtuple('regression_parameters',['result_size','total
 mine_pair_parameters = namedtuple('mine_pair_parameters',['result_size','total_result_size','depth','task_name','constraints'])
 result_parameters = namedtuple('result_parameters',['alpha','beta','gamma','df_result', 'ex_qf_name','sim_qf_name','dataset_tpl', 'parameters'])
 mine_pair_result_parameters = namedtuple('mine_pair_result_parameters',['alpha','beta','gamma','df_result', 'ex_qf_name','sim_qf_name','dataset_tpl', 'parameters','total_runtime','mine_runtime'])
+
+
 def getDoubleCooks():
     return DoubleCooksSimilarity(PolyRegression_ModelClass(), PolyRegression_ModelClass())
 
@@ -84,6 +87,24 @@ def getParameterDiff_reg(gamma):
     return SizeWrapper(Ex_Distance(PolyRegression_ModelClass(), ParameterDistance(get_beta)), gamma)
 def getParameterDiff_sim_reg():
     return Sim_Direct_Distance(PolyRegression_ModelClass(), PolyRegression_ModelClass(), ParameterDistance(get_beta))
+
+
+
+#####
+def getNorm1Exceptionality(n_states, gamma):
+    corr_m = correlations.CorrelationModel([f'attr_{i}' for i in range(n_states)])
+    return  SizeWrapper(Ex_Distance(corr_m, correlations.Correlation_L_Distance(1), invert=False), gamma)
+
+def getNorm1Sim(n_states):
+    corr_m = correlations.CorrelationModel([f'attr_{i}' for i in range(n_states)])
+    corr_m2 = correlations.CorrelationModel([f'attr_{i}' for i in range(n_states)])
+    return Sim_Direct_Distance(corr_m, corr_m2, correlations.Correlation_L_Distance(1))
+
+
+
+#####
+
+
 
 
 task_tpl=namedtuple('task_tpl',['prefix', 'df_index', 'ex_qf', 'sim_qf', 'final_qf', 'alpha', 'beta', 'gamma', 'parameters', 'task_id', 'model_name', 'ignore_columns'])
@@ -162,6 +183,17 @@ class EvaluationFramework:
             tpls.append(tpl)
         return tpls
 
+    def create_cov_datasets(self, n_classes, n_noise, n_dataframes, hide_depth, n_states):
+        tpls = []
+        for df_counter in range(n_dataframes):
+            background_sizes = np.random.randint(10000, 100000+1, 2)
+            tpl = dataset_tpl(*generate_two_cov_dataframes(background_sizes, n_classes, n_noise, n_states))
+            df1 = hide(tpl.df1, hide_depth, int(background_sizes[0]/4)*hide_depth)
+            df2 = hide(tpl.df2, hide_depth, int(background_sizes[1]/4)*hide_depth)
+            self.save_dataset('cov', df_counter,  dataset_tpl(df1,df2,tpl.parameters,tpl.sizes1,tpl.sizes2))
+            tpls.append(tpl)
+        return tpls
+
 
     def save_dataset(self, prefix2, counter, to_save):
         path = self.path(prefix2, counter)
@@ -205,6 +237,16 @@ class EvaluationFramework:
                         n = n+1
         return tasks
 
+    def execute_cov_tests(self, parameters, n_states=5,n_dataframes=10, n_classes=10, processes=1,continue_at=0, ):  
+        ex_qfs = [(functools.partial(getNorm1Exceptionality, n_states),'Norm 1')] 
+        sim_qfs= [(functools.partial(getNorm1Sim, n_states),'Norm 1')]
+
+        tasks=self.create_tasks(ex_qfs, sim_qfs, n_dataframes, model_name='cov', ignore_columns=[*[f'attr_{i}' for i in range(5)],'class'], parameters=parameters)
+        #tasks=[x for x in tasks if not (x[3][1]=='Cooks_sim')]
+        tasks=[x for x in tasks if x.task_id>=continue_at]
+        #tasks=[x for x in tasks if x.ex_qf[1]=='Like']
+        self.execute_tasks(load_run_save_beamsearch_task, tasks, processes)
+
     def execute_regression_tests(self, parameters, n_dataframes=10, n_classes=10, processes=1,continue_at=0, ):  
         ex_qfs = [(getLikelihoodExceptionality,'Like'),  (getCooksExeptionality,'Cooks'),(getParameterDiff_reg,'par')] #(get_LOG_LikelihoodExceptionality,'Log'),
         sim_qfs= [(getLikelihoodSim,'Like_sim'),  (getDoubleCooks,'Cooks_sim'),(getParameterDiff_sim_reg,'par_sim')] #(get_LOG_LikelihoodSim,'Log_sim'),
@@ -243,9 +285,9 @@ class EvaluationFramework:
         sels_L=ps.create_nominal_selectors(df1,exclusions)
         sels_R=ps.create_nominal_selectors(df2,exclusions)
 
-        task_L = ps.SubgroupDiscoveryTask(df1, None, sels_L, Qf_L, result_set_size = parameters.result_size, depth=parameters.depth, min_quality=np.NINF)
+        task_L = ps.SubgroupDiscoveryTask(df1, None, sels_L, Qf_L, result_set_size = parameters.result_size, depth=parameters.depth, min_quality=np.NINF, constraints=parameters.constraints)
         task_L.algorithm = ps.SimpleSearch(show_progress=False)#ps.DFS(ps.BitSetRepresentation)#parameters.result_size)
-        task_R = ps.SubgroupDiscoveryTask(df2, None, sels_R, Qf_R, result_set_size = parameters.result_size, depth=parameters.depth, min_quality=np.NINF)
+        task_R = ps.SubgroupDiscoveryTask(df2, None, sels_R, Qf_R, result_set_size = parameters.result_size, depth=parameters.depth, min_quality=np.NINF, constraints=parameters.constraints)
         task_R.algorithm = ps.SimpleSearch(show_progress=False)#ps.DFS(ps.BitSetRepresentation)#(parameters.result_size)
         run=beam_search_through_candidates(task_L, task_R, parameters.total_result_size, 
                                             parameters.constraints, similarity_function, total_fun, None, None,show_progress=False)

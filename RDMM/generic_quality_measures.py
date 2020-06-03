@@ -21,13 +21,11 @@ class Ex_Distance:
         self.dataset_fit = self.fit_func(slice(None), task.data)
         self.distance.calculate_dataset_statistics(task, self.dataset_fit, self.model)
         self.has_constant_statistics = True
+        self.data_len = len(task.data)
         
 
     def calculate_statistics(self, subgroup, data=None):
-        if hasattr(subgroup, "__array_interface__") or isinstance(subgroup, slice):
-            cover_arr = subgroup
-        else:
-            cover_arr = subgroup.covers(data)
+        cover_arr, _ = ps.get_cover_array_and_size(subgroup, self.data_len, data)
         return self.fit_func(cover_arr)
 
     def evaluate(self, subgroup, statistics=None):

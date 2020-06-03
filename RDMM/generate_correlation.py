@@ -16,13 +16,14 @@ def cov_to_corr(arr):
 mean_cov_tuple=namedtuple('mean_cov_tuple',['mean', 'cov'])
 
 
-def generate_cov_parameters(d, d_sigma=(0.1,10)):
+def generate_cov_parameters(d, d_sigma=(0.1, 10)):
     q, _ = np.linalg.qr(np.random.rand(d,d))
     arr=q @ np.diag(np.random.uniform(*d_sigma, size=d)) @ q.T
     return arr
 
 def generate_all_cov_parameters(d, n_classes, min_dist=0.3, dist=np.linalg.norm):
     """ This funciton generates mean and covariance matrices
+        currently only zero mean is supported
     """
     all_covs = []
     all_corrs = []
@@ -38,27 +39,19 @@ def generate_all_cov_parameters(d, n_classes, min_dist=0.3, dist=np.linalg.norm)
 def create_corr_samples(class_sizes,  parameters):
     assert(len(class_sizes) == len(parameters))
     samples=[]
-    for (cls, sample_size), param in zip(enumerate(class_sizes), parameters):
+    for (_, sample_size), param in zip(enumerate(class_sizes), parameters):
         mean = param.mean
         cov = param.cov
         samples.append(np.random.multivariate_normal(mean, cov, size=sample_size))
     return samples
 
-def create_cov_samples(class_sizes,  parameters):
-    assert(len(class_sizes) == len(parameters))
-    samples=[]
-    for (cls, sample_size), param in zip(enumerate(class_sizes), parameters):
-        mean = param.mean
-        cov = param.cov
-        samples.append(np.random.multivariate_normal(mean, cov, size=sample_size))
-    return samples
 
 def create_cov_dataframe(class_sizes, cov_matrices):
     samples = create_corr_samples(class_sizes, cov_matrices)
     class_array_list=[]
-    for cls, sample in enumerate(samples):
+    for class_int, sample in enumerate(samples):
         #print(sample.shape)
-        class_array_list.append(np.full(sample.shape[0], cls, dtype=int))
+        class_array_list.append(np.full(sample.shape[0], class_int, dtype=int))
     class_array = np.hstack(class_array_list)
     samples_stacked = np.vstack(samples)
     d={}

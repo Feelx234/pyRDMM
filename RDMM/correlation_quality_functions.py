@@ -20,13 +20,13 @@ class CorrelationModel:
 
 
     def fit(self, subgroup, data=None):
-        if hasattr(subgroup, "__array_interface__") or isinstance(subgroup, slice):
-            cover_arr = subgroup
+        cover_arr, size = ps.get_cover_array_and_size(subgroup, self.arrs.shape[1], data)
+        if size > 0:
+            tmp_arrs = self.arrs[:, cover_arr]
+            size = tmp_arrs.shape[1]
+            return correlation_model_tpl(size, np.corrcoef(tmp_arrs, rowvar=True))
         else:
-            cover_arr = subgroup.covers(data)
-        tmp_arrs = self.arrs[:, cover_arr]
-        size = tmp_arrs.shape[1]
-        return correlation_model_tpl(size, np.corrcoef(tmp_arrs, rowvar=True))
+            return correlation_model_tpl(size, np.full((self.arrs.shape[0],self.arrs.shape[0]), np.nan))
 
 
 

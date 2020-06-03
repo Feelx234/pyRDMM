@@ -6,7 +6,7 @@ import pandas as pd
 from itertools import chain
 from collections import namedtuple
 
-from .generate_correlation import *
+from .generate_correlation import generate_all_cov_parameters, create_cov_dataframe
 
 def getGaussParamsForLine(slope,intersept,sigma1,sigma2,x_center):
     phi=np.arctan(slope)
@@ -258,7 +258,7 @@ def generate_two_regression_dataframes(background_sizes, n_classes, num_noise_at
 def generate_sample_sizes(background_size, num_classes):
     min_size = 0.05 * background_size
     max_size = 0.1 * background_size
-    sample_sizes = [background_size] + list(np.random.randint(min_size, max_size + 1, num_classes))
+    sample_sizes = [background_size] + list(np.random.randint(min_size, max_size + 1, num_classes - 1))
     return sample_sizes
 
 def get_dataframe_from_params(sample_func, sample_sizes, parameters, num_noise_attributes):
@@ -416,7 +416,7 @@ def Zipfs_datasets(n_words,):
     pass
 
 def create_Zipfs_distribution(n_words, n_swaps, initial_fuel = 10):
-    word_order = np.arange(n_words)
+    #word_order = np.arange(n_words)
     words_to_swap = np.random.random_integers(int(initial_fuel**1.5), n_words, size=n_swaps)
     new_positions = []
     for word_id in words_to_swap:
@@ -433,6 +433,6 @@ def create_Zipfs_distribution(n_words, n_swaps, initial_fuel = 10):
 
 
 def generate_two_cov_dataframes(background_sizes, n_classes, num_noise_attributes, n_states): # has test
-    params_func = functools.partial(generate_cov_parameters, n_states)
+    params_func = functools.partial(generate_all_cov_parameters, n_states)
     return generate_two_dataframes(background_sizes, n_classes, num_noise_attributes, create_cov_dataframe, params_func)
 
