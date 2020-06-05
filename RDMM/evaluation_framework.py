@@ -88,7 +88,8 @@ def getParameterDiff_reg(gamma):
 def getParameterDiff_sim_reg():
     return Sim_Direct_Distance(PolyRegression_ModelClass(), PolyRegression_ModelClass(), ParameterDistance(get_beta))
 
-
+def no_progress(x):
+    return x
 
 #####
 def getNorm1Exceptionality(n_states, gamma):
@@ -161,9 +162,9 @@ class EvaluationFramework:
             raise RuntimeError('The file you whish to create already exists: '+ str(curr_file))
         return curr_file
 
-    def create_linear_regression_datasets(self, n_classes, n_noise, n_dataframes, hide_depth):
+    def create_linear_regression_datasets(self, n_classes, n_noise, n_dataframes, hide_depth, show_progress=no_progress):
         tpls = []
-        for df_counter in range(n_dataframes):
+        for df_counter in show_progress(range(n_dataframes)):
             background_sizes = np.random.randint(1000, 10000+1, 2)
             tpl = dataset_tpl(*generate_two_regression_dataframes(background_sizes, n_classes, n_noise))
             df1 = hide(tpl.df1, hide_depth, int(background_sizes[0]/4)*hide_depth)
@@ -172,9 +173,9 @@ class EvaluationFramework:
             tpls.append(tpl)
         return tpls
 
-    def create_transition_datasets(self, n_classes, n_noise, n_dataframes, hide_depth, n_states):
+    def create_transition_datasets(self, n_classes, n_noise, n_dataframes, hide_depth, n_states, show_progress=no_progress):
         tpls = []
-        for df_counter in range(n_dataframes):
+        for df_counter in show_progress(range(n_dataframes)):
             background_sizes = np.random.randint(10000, 100000+1, 2)
             tpl = dataset_tpl(*generate_two_transition_dataframes(background_sizes, n_classes, n_noise, n_states))
             df1 = hide(tpl.df1, hide_depth, int(background_sizes[0]/4)*hide_depth)
@@ -183,9 +184,9 @@ class EvaluationFramework:
             tpls.append(tpl)
         return tpls
 
-    def create_cov_datasets(self, n_classes, n_noise, n_dataframes, hide_depth, n_states):
+    def create_cov_datasets(self, n_classes, n_noise, n_dataframes, hide_depth, n_states, show_progress=no_progress):
         tpls = []
-        for df_counter in range(n_dataframes):
+        for df_counter in show_progress(range(n_dataframes)):
             background_sizes = np.random.randint(1000, 10000+1, 2)
             tpl = dataset_tpl(*generate_two_cov_dataframes(background_sizes, n_classes, n_noise, n_states))
             df1 = hide(tpl.df1, hide_depth, int(background_sizes[0]/4)*hide_depth)

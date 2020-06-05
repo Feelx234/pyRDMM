@@ -55,8 +55,8 @@ def create_cov_dataframe(class_sizes, cov_matrices):
     class_array = np.hstack(class_array_list)
     samples_stacked = np.vstack(samples)
     d={}
-    print(class_array.shape)
-    print(samples_stacked.shape)
+    #print(class_array.shape)
+    #print(samples_stacked.shape)
     d["class"]=pd.Categorical(class_array)
     for i in range(samples_stacked.shape[1]):
         name = 'attr_{}'.format(str(i))

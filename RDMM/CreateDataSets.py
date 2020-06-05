@@ -200,7 +200,7 @@ def getTwoDataFrames(n_targets,n_noise=2000,noise_attributes=10, noise_params=[0
         ns_limits=np.hstack([[n_noise],np.random.randint(200,300,len(params))] )
         ns=genNsFromAverage(ns_limits)
         df=generateDataFrameForLinesByInjection(ns,params) if is_correlated else generateDataFrameForLinesByInjection_uncorrelated(ns,params)
-        df=removePointsOutsideOfBox(df,InlierSelectors)
+        #df=removePointsOutsideOfBox(df,InlierSelectors)
         df=addNoiseParams(df,np.random.uniform(0.2,0.8,noise_attributes))
         return df
 
@@ -244,7 +244,7 @@ def generate_all_regression_parameters(n_classes):
 
 def generate_regression_dataframe(sample_sizes, parameters, InlierSelectors=[ps.IntervalSelector('x',-50,50),ps.IntervalSelector('y',-50,50)]):
     df = generateDataFrameForLinesByInjection_uncorrelated(sample_sizes, parameters)
-    df = removePointsOutsideOfBox(df, InlierSelectors)
+    #df = removePointsOutsideOfBox(df, InlierSelectors)
     return df
 
 

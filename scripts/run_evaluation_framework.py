@@ -5,10 +5,11 @@ from RDMM.evaluation_framework import EvaluationFramework, mine_pair_parameters
 from pathlib import Path
 import numpy as np
 import pysubgroup as ps
+from tqdm import tqdm
 day_path = Path('06_04')
 
-#folder= Path.home()/Path('experiments')/day_path
-folder= "L:"/Path('experiments')/day_path
+folder= Path.home()/Path('experiments')/day_path
+#folder= "L:"/Path('experiments')/day_path
 
 if __name__ == '__main__':
     print(folder)
@@ -27,7 +28,9 @@ if __name__ == '__main__':
         n_reg_frames=10
         #try:
         if createDataset:
-            out = frame.create_linear_regression_datasets(n_classes=10, n_noise=10, n_dataframes=n_reg_frames, hide_depth=2)
+            print("Generating regression datasets...")
+            out = frame.create_linear_regression_datasets(n_classes=10, n_noise=10, n_dataframes=n_reg_frames, hide_depth=2, show_progress=tqdm)
+            print("Generating regression datasets: Done")
         if mine_pair:
             print("Runnning regression mine pair")
             frame.execute_regression_tests(mine_pair_params, n_dataframes=n_reg_frames, processes=processes)
@@ -52,9 +55,9 @@ if __name__ == '__main__':
         n_cov_frames=10
         mine_pair_params=mine_pair_params._replace(task_name='mine_pair'+str(n_states))
         exhaustive_params=exhaustive_params._replace(task_name='exhaustive'+str(n_states))
-        if False:
+        if createDataset:
             print("Generating cov datasets...")
-            out = frame.create_cov_datasets(n_classes=10, n_noise=10, n_dataframes=n_cov_frames, hide_depth=2, n_states=n_states)
+            out = frame.create_cov_datasets(n_classes=10, n_noise=10, n_dataframes=n_cov_frames, hide_depth=2, n_states=n_states, show_progress=tqdm)
             print("Generating cov datasets: Done")
 
         if mine_pair:
