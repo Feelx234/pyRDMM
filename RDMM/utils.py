@@ -44,9 +44,8 @@ def display_result(rset_in,column_name='name'):
 
 def eval_framework_to_df(tuples):
     abc_tuples=[t[1][0:3] for t in tuples]
-    function_tuples=[t[1][3:5] for t in tuples]
+    #function_tuples=[t[1][3:5] for t in tuples]
     pd.MultiIndex.from_tuples(abc_tuples)
-    unique_tuples = np.unique(function_tuples)
     d=defaultdict(list)
     for val,tpl in tuples:
         d[tuple(tpl[0:3])].append(tuple(tpl[3:]),val)

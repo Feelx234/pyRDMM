@@ -143,7 +143,7 @@ def mine_and_find(task_L, task_R,  resultLen,sim_QF, combineFun, all_model_param
 
 
 
-def to_dataframe(result_in):
+def to_dataframe(result_in, keep_n=None):
     result=result_in.copy()
     final_result=[]
     while len(result) > 0:
@@ -157,6 +157,9 @@ def to_dataframe(result_in):
     df_final.columns = ["qual",'sim','eL','eR','sgd1','sgd2','sizeL','sizeR']
     for col in ['eL','eR','sgd1','sgd2','sizeL','sizeR']:
         df_final[col]=df_final[col].astype('category')
-
+    
     df_final = df_final[::-1].reset_index(drop=True)
+    df_final.sort_values(by=['qual'], ascending=False)
+    if not keep_n is None:
+        df_final = df_final.head(keep_n)
     return df_final

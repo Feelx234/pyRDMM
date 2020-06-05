@@ -177,11 +177,7 @@ class EMM_LikelihoodGain(ps.AbstractInterestingnessMeasure):
         self.has_constant_statistics = True
 
     def calculate_statistics(self, subgroup, data=None):
-        if hasattr(subgroup, "__array_interface__"):
-            cover_arr = subgroup
-        else:
-            cover_arr = subgroup.covers(data)
-        sg_size = np.count_nonzero(cover_arr)
+        cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, self.data_size, data)
         params = self.model.fit(cover_arr, data)
 
         #numeric stability?
@@ -192,7 +188,7 @@ class EMM_LikelihoodGain(ps.AbstractInterestingnessMeasure):
 
         sg_average = np.nan
         dataset_average = np.nan
-        if sg_size > 0:
+        if size_sg > 0:
             sg_average = np.mean(sg_likelihood)
             dataset_average = np.mean(self.dataset_likelihood[cover_arr])
         return EMM_LikelihoodGain.tpl(params, sg_average, dataset_average)
@@ -224,14 +220,10 @@ class SizeWrapper(ps.AbstractInterestingnessMeasure):
         self.has_constant_statistics = True
 
     def calculate_statistics(self, subgroup, data=None):
-        if hasattr(subgroup, "__array_interface__"):
-            cover_arr = subgroup
-        else:
-            cover_arr = subgroup.covers(data)
-        sg_size = np.count_nonzero(cover_arr)
+        cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, self.data_size, data)
         params = self.qf.calculate_statistics(cover_arr, data)
         
-        return SizeWrapper.tpl(sg_size, params)
+        return SizeWrapper.tpl(size_sg, params)
 
     def evaluate(self, subgroup, statistics = None):
         return (statistics.size_sg / self.data_size) ** self.alpha * self.qf.evaluate(subgroup, statistics.wrapped_tuple)

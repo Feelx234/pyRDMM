@@ -121,7 +121,7 @@ def load_run_save_beamsearch_task(params ):
     start = timeit.default_timer()
     result, mine_time = framework.run_single_task_beamsearch( dataset_t.df1, dataset_t.df2, ex_qf(gamma), ex_qf(gamma), sim_qf(), functools.partial(params.final_qf,params.alpha,params.beta), params.parameters,params.ignore_columns)
     stop = timeit.default_timer()
-    df = to_dataframe(result) 
+    df = to_dataframe(result, 20000) 
     new_dataset_tuple=dataset_tpl(None,None,*dataset_t[2:])
     complete_result = mine_pair_result_parameters(params.alpha, params.beta, params.gamma, df, ex_name, sim_name, new_dataset_tuple, params.parameters, stop-start, mine_time)
     framework.save_dataset(path_prefix, params.task_id, complete_result)
@@ -186,10 +186,18 @@ class EvaluationFramework:
     def create_cov_datasets(self, n_classes, n_noise, n_dataframes, hide_depth, n_states):
         tpls = []
         for df_counter in range(n_dataframes):
-            background_sizes = np.random.randint(10000, 100000+1, 2)
+            background_sizes = np.random.randint(1000, 10000+1, 2)
             tpl = dataset_tpl(*generate_two_cov_dataframes(background_sizes, n_classes, n_noise, n_states))
             df1 = hide(tpl.df1, hide_depth, int(background_sizes[0]/4)*hide_depth)
             df2 = hide(tpl.df2, hide_depth, int(background_sizes[1]/4)*hide_depth)
+            
+            assert len(df1['class'].unique()) == (n_classes + 1)
+            assert len(df2['class'].unique()) == (n_classes + 1)
+
+            assert (df1['class']==0).sum() == background_sizes[0]
+            assert (df2['class']==0).sum() == background_sizes[1]
+
+
             self.save_dataset('cov', df_counter,  dataset_tpl(df1,df2,tpl.parameters,tpl.sizes1,tpl.sizes2))
             tpls.append(tpl)
         return tpls

@@ -258,7 +258,7 @@ def generate_two_regression_dataframes(background_sizes, n_classes, num_noise_at
 def generate_sample_sizes(background_size, num_classes):
     min_size = 0.05 * background_size
     max_size = 0.1 * background_size
-    sample_sizes = [background_size] + list(np.random.randint(min_size, max_size + 1, num_classes - 1))
+    sample_sizes = [background_size] + list(np.random.randint(min_size, max_size + 1, num_classes))
     return sample_sizes
 
 def get_dataframe_from_params(sample_func, sample_sizes, parameters, num_noise_attributes):
@@ -269,10 +269,15 @@ def get_dataframe_from_params(sample_func, sample_sizes, parameters, num_noise_a
 def generate_two_dataframes(background_sizes, n_classes, num_noise_attributes, sample_func, params_func):
     sample_sizes1 = generate_sample_sizes(background_sizes[0], n_classes)
     sample_sizes2 = generate_sample_sizes(background_sizes[1], n_classes)
-    all_parameters = params_func(n_classes)
+    all_parameters = params_func(n_classes + 1)
 
     df1 = get_dataframe_from_params(sample_func, sample_sizes1, all_parameters, num_noise_attributes)
+    for i, size in enumerate(sample_sizes1):
+        assert (df1['class'] == i).sum() == size
+
     df2 = get_dataframe_from_params(sample_func, sample_sizes2, all_parameters, num_noise_attributes)
+    for i, size in enumerate(sample_sizes2):
+        assert (df2['class'] == i).sum() == size
 
     return df1, df2, all_parameters, sample_sizes1, sample_sizes2
 
