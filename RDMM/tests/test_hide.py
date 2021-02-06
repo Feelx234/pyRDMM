@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from model_mining.CreateDataSets import generate_two_transition_dataframes, generate_two_regression_dataframes, hide, validate_hide
+from RDMM.CreateDataSets import generate_two_transition_dataframes, generate_two_regression_dataframes, hide, validate_hide
 
 
 class TestHiding(unittest.TestCase):

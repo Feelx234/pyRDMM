@@ -377,7 +377,7 @@ def create_random_transition_matrix(n_states): # has test
     return P
 
 def create_transition_sample(n_states, sample_size, pmatrix): # has test
-        choices = np.random.choice(n_states**2, sample_size, p=pmatrix.flatten())
+        choices = np.random.choice(n_states**2, sample_size, p=pmatrix.ravel())
         ins, outs = np.unravel_index(choices, pmatrix.shape) # pylint: disable=unbalanced-tuple-unpacking
         return ins, outs
 

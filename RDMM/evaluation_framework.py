@@ -74,7 +74,7 @@ def getTotalVariationExceptionality(n_states, gamma):
     return SizeWrapper(EMM_TotalVariation(n_states), gamma)
 
 def get_pmatrix(tpl):
-    return tpl.p_matrix.flatten()
+    return tpl.p_matrix.ravel()
 def getParameterDiff_trans(n_states, gamma):
     return SizeWrapper(Ex_Distance(Transition_ModelClass(n_states, 10), ParameterDistance(get_pmatrix)), gamma)
 def getParameterDiff_sim_trans(n_states):
@@ -82,7 +82,7 @@ def getParameterDiff_sim_trans(n_states):
 
 
 def get_beta(tpl):
-    return tpl.beta.flatten()
+    return tpl.beta.ravel()
 def getParameterDiff_reg(gamma):
     return SizeWrapper(Ex_Distance(PolyRegression_ModelClass(), ParameterDistance(get_beta)), gamma)
 def getParameterDiff_sim_reg():
@@ -140,6 +140,12 @@ def load_run_save_oracle_task(tpl_in ):
     framework.save_dataset(Path(task_type)/Path('oracle_results'), n, complete_result)
 
 import gzip
+
+
+def test_generated_dataframe(df, n_classes, background_size):
+    assert len(df['class'].unique()) == (n_classes + 1)
+    assert (df['class']==0).sum() == background_size
+
 class EvaluationFramework:
     def __init__(self, prefix_folder):
         self.prefix = Path(prefix_folder)
@@ -169,6 +175,10 @@ class EvaluationFramework:
             tpl = dataset_tpl(*generate_two_regression_dataframes(background_sizes, n_classes, n_noise))
             df1 = hide(tpl.df1, hide_depth, int(background_sizes[0]/4)*hide_depth)
             df2 = hide(tpl.df2, hide_depth, int(background_sizes[1]/4)*hide_depth)
+
+            test_generated_dataframe(df1, n_classes, background_sizes[0])
+            test_generated_dataframe(df2, n_classes, background_sizes[1])
+
             self.save_dataset('regression',df_counter,  dataset_tpl(df1,df2,tpl.parameters,tpl.sizes1,tpl.sizes2))
             tpls.append(tpl)
         return tpls
@@ -180,6 +190,10 @@ class EvaluationFramework:
             tpl = dataset_tpl(*generate_two_transition_dataframes(background_sizes, n_classes, n_noise, n_states))
             df1 = hide(tpl.df1, hide_depth, int(background_sizes[0]/4)*hide_depth)
             df2 = hide(tpl.df2, hide_depth, int(background_sizes[1]/4)*hide_depth)
+
+            test_generated_dataframe(df1, n_classes, background_sizes[0])
+            test_generated_dataframe(df2, n_classes, background_sizes[1])
+
             self.save_dataset('transition', df_counter,  dataset_tpl(df1,df2,tpl.parameters,tpl.sizes1,tpl.sizes2))
             tpls.append(tpl)
         return tpls
@@ -192,11 +206,8 @@ class EvaluationFramework:
             df1 = hide(tpl.df1, hide_depth, int(background_sizes[0]/4)*hide_depth)
             df2 = hide(tpl.df2, hide_depth, int(background_sizes[1]/4)*hide_depth)
             
-            assert len(df1['class'].unique()) == (n_classes + 1)
-            assert len(df2['class'].unique()) == (n_classes + 1)
-
-            assert (df1['class']==0).sum() == background_sizes[0]
-            assert (df2['class']==0).sum() == background_sizes[1]
+            test_generated_dataframe(df1, n_classes, background_sizes[0])
+            test_generated_dataframe(df2, n_classes, background_sizes[1])
 
 
             self.save_dataset('cov', df_counter,  dataset_tpl(df1,df2,tpl.parameters,tpl.sizes1,tpl.sizes2))

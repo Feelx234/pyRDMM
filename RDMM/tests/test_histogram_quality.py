@@ -65,12 +65,12 @@ class TestHistogram(unittest.TestCase):
         other_arr = np.zeros((2,4),dtype=int)
         other_arr[1,1]=1
         other_arr[1,2]=1
-        np.testing.assert_array_equal(other_arr.flatten(), qf.calculate_statistics(sg1_L,None,0).histogram)
+        np.testing.assert_array_equal(other_arr.ravel(), qf.calculate_statistics(sg1_L,None,0).histogram)
 
         other_arr = np.zeros((2,4),dtype=int)
         other_arr[0,0]=2
         other_arr[1,1]=1
-        np.testing.assert_array_equal(other_arr.flatten(), qf.calculate_statistics(sg1_R,None,1).histogram)
+        np.testing.assert_array_equal(other_arr.ravel(), qf.calculate_statistics(sg1_R,None,1).histogram)
 
 
 

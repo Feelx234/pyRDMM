@@ -1,4 +1,4 @@
-from model_mining.model_target import *
+from RDMM.model_target import *
 import pandas as pd
 import pysubgroup as ps
 import numpy as np

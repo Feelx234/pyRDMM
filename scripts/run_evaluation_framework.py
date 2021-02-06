@@ -8,8 +8,8 @@ import pysubgroup as ps
 from tqdm import tqdm
 day_path = Path('06_04')
 
-folder= Path.home()/Path('experiments')/day_path
-#folder= "L:"/Path('experiments')/day_path
+#folder= Path.home()/Path('experiments')/day_path
+folder= "L:"/Path('experiments')/day_path
 
 if __name__ == '__main__':
     print(folder)
@@ -19,8 +19,8 @@ if __name__ == '__main__':
     regression = True
     transition = False
     covariance = True
-    mine_pair=True
-    exhaustive=True
+    mine_pair=False
+    exhaustive=False
     processes=6
     mine_pair_params=mine_pair_parameters(50,100,2,'mine_pair',[ps.MinSupportConstraint(50)])
     exhaustive_params=mine_pair_parameters(2000,1000000,2,'exhaustive',[ps.MinSupportConstraint(50)])

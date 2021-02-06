@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from model_mining.CreateDataSets import create_transition_sample, generate_two_transition_dataframes, create_random_transition_matrix
+from RDMM.CreateDataSets import create_transition_sample, generate_two_transition_dataframes, create_random_transition_matrix
 
 def transitions_to_matrix(x_arr,y_arr,shape):
     M=np.zeros(shape,dtype=int)

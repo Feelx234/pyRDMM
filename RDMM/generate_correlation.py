@@ -18,7 +18,11 @@ mean_cov_tuple=namedtuple('mean_cov_tuple',['mean', 'cov'])
 
 def generate_cov_parameters(d, d_sigma=(0.1, 10)):
     q, _ = np.linalg.qr(np.random.rand(d,d))
-    arr=q @ np.diag(np.random.uniform(*d_sigma, size=d)) @ q.T
+
+    # matrix of eigenvalues for our covariance matrix
+    # these values correspond directly to the eigenvalues in the cov matrix.
+    Lambda = np.diag(np.random.uniform(*d_sigma, size=d))
+    arr=q @ Lambda @ q.T
     return arr
 
 def generate_all_cov_parameters(d, n_classes, min_dist=0.3, dist=np.linalg.norm):
@@ -30,7 +34,7 @@ def generate_all_cov_parameters(d, n_classes, min_dist=0.3, dist=np.linalg.norm)
     while len(all_covs) < n_classes:
         new_cov = generate_cov_parameters(d)
         new_corr = cov_to_corr(new_cov)
-        if all(dist(new_corr.flatten()-corr.flatten()) > min_dist*d for corr in all_corrs):
+        if all(dist(new_corr.ravel()-corr.ravel()) > min_dist*d for corr in all_corrs):
             all_covs.append(new_cov)
             all_corrs.append(new_corr)
     return [mean_cov_tuple(np.zeros(d), cov) for cov in all_covs]
@@ -60,5 +64,5 @@ def create_cov_dataframe(class_sizes, cov_matrices):
     d["class"]=pd.Categorical(class_array)
     for i in range(samples_stacked.shape[1]):
         name = 'attr_{}'.format(str(i))
-        d[name] = samples_stacked[:,i].flatten()
+        d[name] = samples_stacked[:,i].ravel()
     return pd.DataFrame.from_dict(d)

@@ -1,4 +1,5 @@
 from collections import namedtuple
+from functools import wraps
 import numpy as np
 import pandas as pd
 import pysubgroup as ps
@@ -16,7 +17,14 @@ class Ex_Distance:
         else:
             self.fit_func = self.model.fit
 
-    def calculate_constant_statistics(self, task):
+    def calculate_constant_statistics(self, task_or_data, target=None):
+        if hasattr(target, "data"):
+            task = task_or_data
+        else:
+            wrapper = namedtuple("task_wrapper", ["data", "target"])
+            task = wrapper(task_or_data, target)
+            print("wrapping")
+
         self.model.calculate_constant_statistics(task)
         self.dataset_fit = self.fit_func(slice(None), task.data)
         self.distance.calculate_dataset_statistics(task, self.dataset_fit, self.model)
@@ -24,11 +32,11 @@ class Ex_Distance:
         self.data_len = len(task.data)
         
 
-    def calculate_statistics(self, subgroup, data=None):
+    def calculate_statistics(self, subgroup, target=None, data=None):
         cover_arr, _ = ps.get_cover_array_and_size(subgroup, self.data_len, data)
         return self.fit_func(cover_arr)
 
-    def evaluate(self, subgroup, statistics=None):
+    def evaluate(self, subgroup, target=None, data=None, statistics=None):
         if isinstance(statistics, pd.DataFrame):
             statistics = self.calculate_statistics(subgroup, statistics)
         if statistics.size_sg == 0:
@@ -206,8 +214,8 @@ class ParameterDistance:
 
 
     def compare(self, subgroup1, subgroup2, statistics1, statistics2):
-        x1 = self.get_params_func(statistics1).flatten()
-        x2 = self.get_params_func(statistics2).flatten()
+        x1 = self.get_params_func(statistics1).ravel()
+        x2 = self.get_params_func(statistics2).ravel()
         return np.linalg.norm(x1-x2, ord=self.order)
 
     @property

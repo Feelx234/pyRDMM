@@ -8,14 +8,21 @@ class CorrelationModel:
     def __init__(self, columns):
         self.columns = tuple(columns)
 
-    def calculate_constant_statistics(self, task):
+    def calculate_constant_statistics(self, task, target=None):
+        
+        if target is None:
+            data = task.data
+        else:
+            data = task
+
+
         l=[]
         for col in self.columns:
-            if task.data[col].dtype.name=='category':
+            if data[col].dtype.name=='category':
                 print(f'using codes for {col}')
-                l.append(task.data[col].cat.codes.to_numpy())
+                l.append(data[col].cat.codes.to_numpy())
             else:
-                l.append(task.data[col].to_numpy())
+                l.append(data[col].to_numpy())
         self.arrs = np.array(l)
 
 
@@ -38,7 +45,7 @@ class Correlation_L_Distance:
         pass
 
     def compare(self, subgroup1, subgroup2, statistics1, statistics2):
-        return np.linalg.norm(statistics1.correlation_matrix.flatten() - statistics2.correlation_matrix.flatten(), ord = self.order)
+        return np.linalg.norm(statistics1.correlation_matrix.ravel() - statistics2.correlation_matrix.ravel(), ord = self.order)
 
     @property
     def requires_cover_arr(self):

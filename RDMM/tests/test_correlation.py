@@ -17,12 +17,12 @@ class TestHistogram(unittest.TestCase):
         model.calculate_constant_statistics(task_dummy(df))
 
         fit_result = model.fit(slice(None))
-        self.assertEqual(fit_result.size, 50)
+        self.assertEqual(fit_result.size_sg, 50)
         np.testing.assert_array_almost_equal(fit_result.correlation_matrix, np.array([[1,1], [1,1]]), decimal=2)
 
 
         fit_result = model.fit(np.hstack([np.ones(25, dtype=bool),np.zeros(25, dtype=bool)]))
-        self.assertEqual(fit_result.size, 25)
+        self.assertEqual(fit_result.size_sg, 25)
         np.testing.assert_array_almost_equal(fit_result.correlation_matrix, np.array([[1,1], [1,1]]), decimal=2)
 
 
