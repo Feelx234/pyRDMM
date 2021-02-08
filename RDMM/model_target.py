@@ -30,7 +30,14 @@ class PolyRegression_ModelClass:
         self.has_constant_statistics = True
         super().__init__()
 
-    def calculate_constant_statistics(self, task):
+    def calculate_constant_statistics(self, task_or_data, target=None):
+        if hasattr(target, "data"):
+            task = target
+        elif hasattr(task_or_data, "data"):
+            task = task_or_data
+        else:
+            wrapper = namedtuple("task_wrapper", ["data", "target"])
+            task = wrapper(task_or_data, target)
         data = task.data
         self.x = data[self._x_name].to_numpy()
         self.y = data[self._y_name].to_numpy()
@@ -148,8 +155,11 @@ class Transition_ModelClass:
         self.out_name=out_name
         self.has_constant_statistics = False
 
-    def calculate_constant_statistics(self, task):
-        data = task.data
+    def calculate_constant_statistics(self, task, target=None):
+        if target is None:
+            data = task.data
+        else:
+            data = task
         self.in_arr = data[self.in_name].to_numpy()
         self.out_arr = data[self.out_name].to_numpy()
         self.has_constant_statistics = True

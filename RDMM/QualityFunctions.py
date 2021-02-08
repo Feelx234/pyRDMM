@@ -166,10 +166,20 @@ class EMM_LikelihoodGain(ps.AbstractInterestingnessMeasure):
         else:
             assert(hasattr(self.model,'likelihood'))
 
-    def calculate_constant_statistics(self, task):
-        self.model.calculate_constant_statistics(task)
-        self.data_size = len(task.data)
-        null_parameters = self.model.fit(np.ones(self.data_size, dtype=bool), task.data)
+    def calculate_constant_statistics(self, task_or_data, target=None):
+        if hasattr(target, "data"):
+            task = task_or_data
+        elif hasattr(task_or_data, "data"):
+            task = task_or_data
+        else:
+            wrapper = namedtuple("task_wrapper", ["data", "target"])
+            task = wrapper(task_or_data, target)
+        self.model.calculate_constant_statistics(task, target)
+
+        data = task.data
+        self.data_size = len(data)
+
+        null_parameters = self.model.fit(np.ones(self.data_size, dtype=bool), data)
         if self.use_log:
             self.dataset_likelihood = self.model.loglikelihood(null_parameters, None)
         else:
@@ -194,7 +204,7 @@ class EMM_LikelihoodGain(ps.AbstractInterestingnessMeasure):
         return EMM_LikelihoodGain.tpl(params, sg_average, dataset_average)
 
     def evaluate(self, subgroup, statistics = None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+        statistics = self.ensure_statistics(subgroup, None, None, statistics)
         #numeric stability?
         return max(statistics.subgroup_likelihood - statistics.dataset_likelihood, 0)
 
@@ -214,18 +224,24 @@ class SizeWrapper(ps.AbstractInterestingnessMeasure):
         self.has_constant_statistics = False
         self.required_stat_attrs = SizeWrapper.tpl._fields
 
-    def calculate_constant_statistics(self, task):
-        self.qf.calculate_constant_statistics(task)
-        self.data_size = len(task.data)
+    def calculate_constant_statistics(self, task_or_data, target=None):
+        if hasattr(target, "data"):
+            task = task_or_data
+        else:
+            wrapper = namedtuple("task_wrapper", ["data", "target"])
+            task = wrapper(task_or_data, target)
+        data = task.data
+        self.qf.calculate_constant_statistics(task, target)
+        self.data_size = len(data)
         self.has_constant_statistics = True
 
-    def calculate_statistics(self, subgroup, data=None):
+    def calculate_statistics(self, subgroup, target, data=None):
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, self.data_size, data)
         params = self.qf.calculate_statistics(cover_arr, data)
         
         return SizeWrapper.tpl(size_sg, params)
 
-    def evaluate(self, subgroup, statistics = None):
+    def evaluate(self, subgroup, target, data, statistics = None):
         return (statistics.size_sg / self.data_size) ** self.alpha * self.qf.evaluate(subgroup, statistics.wrapped_tuple)
 
     def optimistic_estimate(self, subgroup, statistics = None):
