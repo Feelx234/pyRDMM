@@ -15,7 +15,7 @@ def parse_task_input(task_or_data, target):
     return task, target
 
 
-class Ex_Distance(ps.AbstractInterestingnessMeasure):
+class Ex_Distance:
     def __init__(self, model, distance, invert=False, epsilon=10**-10):
         self.model = model
         self.distance=distance
@@ -44,7 +44,7 @@ class Ex_Distance(ps.AbstractInterestingnessMeasure):
 
     def evaluate(self, subgroup, target=None, data=None, statistics=None):
         if isinstance(statistics, pd.DataFrame):
-            statistics = self.calculate_statistics(subgroup, statistics)
+            statistics = self.calculate_statistics(subgroup, data=statistics)
         if statistics.size_sg == 0:
             return np.nan
         if self.invert:

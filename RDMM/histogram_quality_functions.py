@@ -20,7 +20,7 @@ class HistogramBaseClass():
         self.histogram_class.calculate_constant_statistics(taskL, taskR)
 
     def calculate_statistics(self, subgroup, data=None, side=None):
-        return self.histogram_class.calculate_statistics(subgroup, data, side)
+        return self.histogram_class.calculate_statistics(subgroup, data=data, side=side)
 
 
 
