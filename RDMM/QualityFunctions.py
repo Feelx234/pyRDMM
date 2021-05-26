@@ -198,7 +198,7 @@ class EMM_LikelihoodGain(ps.AbstractInterestingnessMeasure):
         return EMM_LikelihoodGain.tpl(params, sg_average, dataset_average)
 
     def evaluate(self, subgroup, statistics = None):
-        statistics = self.ensure_statistics(subgroup, None, None, statistics)
+        statistics = self.ensure_statistics(subgroup, statistics=statistics)
         #numeric stability?
         return max(statistics.subgroup_likelihood - statistics.dataset_likelihood, 0)
 
@@ -226,16 +226,19 @@ class SizeWrapper(ps.AbstractInterestingnessMeasure):
         self.data_size = len(data)
         self.has_constant_statistics = True
 
-    def calculate_statistics(self, subgroup, target, data=None):
+    def calculate_statistics(self, subgroup, target=None, data=None):
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, self.data_size, data)
         params = self.qf.calculate_statistics(cover_arr, data)
         assert not params is None
         return SizeWrapper.tpl(size_sg, params)
 
     def evaluate(self, subgroup=None, target=None, data=None, statistics = None):
-        statistics = self.ensure_statistics(subgroup, target, data, statistics)
-
-        wrapped_tuple = self.qf.ensure_statistics(subgroup, target, data, statistics.wrapped_tuple)
+        if statistics is None:
+            statistics = self.ensure_statistics(subgroup, statistics)
+        if statistics.wrapped_tuple is None:
+            wrapped_tuple = self.qf.ensure_statistics(subgroup, target, data, statistics.wrapped_tuple)
+        else:
+            wrapped_tuple = statistics.wrapped_tuple
         #print(self.qf.__class__)
         return (statistics.size_sg / self.data_size) ** self.alpha * self.qf.evaluate(subgroup, statistics=wrapped_tuple)
 
