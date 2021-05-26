@@ -4,7 +4,18 @@ import numpy as np
 import pandas as pd
 import pysubgroup as ps
 
-class Ex_Distance:
+def parse_task_input(task_or_data, target):
+    if hasattr(target, "data"):
+        task = task_or_data
+    elif hasattr(task_or_data, "data"):
+        task = task_or_data
+    else:
+        wrapper = namedtuple("task_wrapper", ["data", "target"])
+        task = wrapper(task_or_data, target)
+    return task, target
+
+
+class Ex_Distance(ps.AbstractInterestingnessMeasure):
     def __init__(self, model, distance, invert=False, epsilon=10**-10):
         self.model = model
         self.distance=distance
@@ -18,12 +29,7 @@ class Ex_Distance:
             self.fit_func = self.model.fit
 
     def calculate_constant_statistics(self, task_or_data, target=None):
-        if hasattr(target, "data"):
-            task = task_or_data
-        else:
-            wrapper = namedtuple("task_wrapper", ["data", "target"])
-            task = wrapper(task_or_data, target)
-            print("wrapping")
+        task, target = parse_task_input(task_or_data, target)
 
         self.model.calculate_constant_statistics(task)
         self.dataset_fit = self.fit_func(slice(None), task.data)

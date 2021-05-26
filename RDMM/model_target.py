@@ -1,10 +1,13 @@
 import numpy as np
 from numba import njit
+import pandas as pd
 import pysubgroup as ps
 from scipy.stats import norm
 from collections import namedtuple
 beta_tuple = namedtuple('beta_tuple',['beta','size_sg'])
 from numba import njit
+
+from .generic_quality_measures import parse_task_input
 @njit(fastmath=True)
 def norm_pdf(x,y,beta,out):
     norm_frac=1/np.sqrt(np.pi * 2)
@@ -31,14 +34,9 @@ class PolyRegression_ModelClass:
         super().__init__()
 
     def calculate_constant_statistics(self, task_or_data, target=None):
-        if hasattr(target, "data"):
-            task = target
-        elif hasattr(task_or_data, "data"):
-            task = task_or_data
-        else:
-            wrapper = namedtuple("task_wrapper", ["data", "target"])
-            task = wrapper(task_or_data, target)
+        task, target = parse_task_input(task_or_data, target)
         data = task.data
+        assert isinstance(data, pd.DataFrame), str(data)
         self.x = data[self._x_name].to_numpy()
         self.y = data[self._y_name].to_numpy()
         self.has_constant_statistics = True

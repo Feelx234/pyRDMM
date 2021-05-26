@@ -4,7 +4,7 @@ import pysubgroup as ps
 from collections import  namedtuple
 
 from .model_target import PolyRegression_ModelClass, Transition_ModelClass
-
+from .generic_quality_measures import parse_task_input
 
 def getX(X_in,deg):
     if len(X_in.shape)==1:
@@ -78,7 +78,7 @@ class EMM_quality_Cook_poly(ps.AbstractInterestingnessMeasure):
         self.has_constant_statistics = False
         self.required_stat_attrs = ('beta',)
 
-    def calculate_constant_statistics(self, task):
+    def calculate_constant_statistics(self, task, target=None):
         self.model.calculate_constant_statistics(task)
         self.beta_all = self.model.fit(np.ones(len(task.data), dtype=bool), task.data).beta
         self.XTX, self.s_2 = getXTXforFit(self.model.x, self.model.y, self.beta_all)
@@ -94,7 +94,7 @@ class EMM_quality_Cook_poly(ps.AbstractInterestingnessMeasure):
         return self.model.fit(cover_arr)
 
     def evaluate(self, subgroup, statistics = None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+        statistics = self.ensure_statistics(subgroup, None, None, statistics)
         if statistics.size_sg <=0:
             return np.nan
         return CooksDistance(statistics.beta, self.beta_all, self.XTX, self.s_2)
@@ -142,7 +142,7 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
         return EMM_Likelihood.tpl(params, sg_average, dataset_average)
 
     def evaluate(self, subgroup, statistics = None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+        statistics = self.ensure_statistics(subgroup, None, None, statistics)
         #numeric stability?
         return (statistics.subgroup_likelihood - statistics.inverse_likelihood)
 
@@ -167,13 +167,7 @@ class EMM_LikelihoodGain(ps.AbstractInterestingnessMeasure):
             assert(hasattr(self.model,'likelihood'))
 
     def calculate_constant_statistics(self, task_or_data, target=None):
-        if hasattr(target, "data"):
-            task = task_or_data
-        elif hasattr(task_or_data, "data"):
-            task = task_or_data
-        else:
-            wrapper = namedtuple("task_wrapper", ["data", "target"])
-            task = wrapper(task_or_data, target)
+        task, target = parse_task_input(task_or_data, target)
         self.model.calculate_constant_statistics(task, target)
 
         data = task.data
@@ -225,12 +219,9 @@ class SizeWrapper(ps.AbstractInterestingnessMeasure):
         self.required_stat_attrs = SizeWrapper.tpl._fields
 
     def calculate_constant_statistics(self, task_or_data, target=None):
-        if hasattr(target, "data"):
-            task = task_or_data
-        else:
-            wrapper = namedtuple("task_wrapper", ["data", "target"])
-            task = wrapper(task_or_data, target)
+        task, target = parse_task_input(task_or_data, target)
         data = task.data
+
         self.qf.calculate_constant_statistics(task, target)
         self.data_size = len(data)
         self.has_constant_statistics = True
@@ -238,11 +229,15 @@ class SizeWrapper(ps.AbstractInterestingnessMeasure):
     def calculate_statistics(self, subgroup, target, data=None):
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, self.data_size, data)
         params = self.qf.calculate_statistics(cover_arr, data)
-        
+        assert not params is None
         return SizeWrapper.tpl(size_sg, params)
 
-    def evaluate(self, subgroup, target, data, statistics = None):
-        return (statistics.size_sg / self.data_size) ** self.alpha * self.qf.evaluate(subgroup, statistics.wrapped_tuple)
+    def evaluate(self, subgroup=None, target=None, data=None, statistics = None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
+
+        wrapped_tuple = self.qf.ensure_statistics(subgroup, target, data, statistics.wrapped_tuple)
+        #print(self.qf.__class__)
+        return (statistics.size_sg / self.data_size) ** self.alpha * self.qf.evaluate(subgroup, statistics=wrapped_tuple)
 
     def optimistic_estimate(self, subgroup, statistics = None):
         return float('inf')
