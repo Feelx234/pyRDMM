@@ -17,8 +17,9 @@ pip install -e pyRDMM/
 pip instal jupyter
 ```
 
-## Running the experiments on synthetic data
+## Experiments on synthetic data
 
+### Running the actual experiments
 To tun the experiments on synthetic data move into the scripts folder of pyRDMM.
 ```
 cd ./pyRDMM/scripts/
@@ -28,10 +29,21 @@ you can run those with the virtual environment activated by
 ```
 python run_experiments.py 
 ```
+### Creating human readable visualizations
+After all the experiments are finished the script `export_eval_results.ipynb` can be used to create plots and to export the results in a more human readable fashion.
 
-## Running the experiments on real world data
-For the experiments with real world data you first need the data.
+
+## Experiments on real world data
+We performed two experiments on real world datasets. One on a housing dataset available at kaggle and a second experiment with survey data for the European Social Survey (ESS).
+
+
 ### Experiments for the house price datasets
-The house price data we used are available at https://www.kaggle.com/dansbecker/melbourne-housing-snapshot and https://www.kaggle.com/ruiqurm/lianjia.
+To run the house price experiments you will need to download the data manually from kaggle. The corresponding links are:
+ - https://www.kaggle.com/dansbecker/melbourne-housing-snapshot and
+ - https://www.kaggle.com/ruiqurm/lianjia.
+
+
 To then run the experiments for the house price data consider the script `real_data_housing.ipynb` in `pyRDMM/scripts/`. There all you need to do is adjust the `folder` in the second cell to point to the locations where the downloaded files are located.
 
+
+### Experiments for the European Social Survey (ESS) data 
